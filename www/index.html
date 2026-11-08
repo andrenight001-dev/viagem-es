@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Viagem ES — Guarapari, Vila Velha e Vitória</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1c2b2d;--mut:#667476;--line:#e4e0d6;--acc:#0e7c86;--acc2:#e8f4f5;--warn:#b4570b;--ok:#2f7d4f}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:76px}
+header{background:var(--acc);color:#fff;padding:18px 16px 14px}
+header h1{margin:0;font-size:20px}
+header p{margin:4px 0 0;font-size:14px;opacity:.9}
+main{max-width:720px;margin:0 auto;padding:12px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:5;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;padding:10px 4px 9px;font:inherit;font-size:12px;color:var(--mut);cursor:pointer}
+nav button b{display:block;font-size:20px;line-height:1.1;font-weight:400}
+nav button.on{color:var(--acc);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 12px}
+.day-h{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;cursor:pointer}
+.day-h h3{margin:0;font-size:16px}
+.day-h small{color:var(--mut)}
+.badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--acc2);color:var(--acc);white-space:nowrap;font-weight:600}
+.badge.gua{background:#fdf0dc;color:#9a5a05}.badge.vv{background:#e6f1e9;color:var(--ok)}.badge.vit{background:#ece9f7;color:#4b3f99}
+.today{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc2)}
+.items{margin:10px 0 0;padding:0;list-style:none}
+.items li{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);align-items:flex-start}
+.items input[type=checkbox]{width:22px;height:22px;margin-top:2px;flex:none;accent-color:var(--ok)}
+.items .t{font-size:12px;color:var(--mut);min-width:46px;padding-top:3px}
+.items .x{flex:1}
+.items .x.done{text-decoration:line-through;color:var(--mut)}
+.items a.map{font-size:13px;color:var(--acc);text-decoration:none;display:inline-block;margin-top:2px}
+.add{display:flex;gap:6px;margin-top:8px}
+.add input{flex:1;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:14px;min-width:0}
+.add button,.btn{padding:9px 12px;border:0;border-radius:8px;background:var(--acc);color:#fff;font:inherit;font-size:14px;cursor:pointer;text-decoration:none;display:inline-block}
+.del{border:0;background:none;color:var(--mut);font-size:18px;cursor:pointer;padding:0 4px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px}
+.chips button{flex:none;border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 13px;font:inherit;font-size:14px;cursor:pointer}
+.chips button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.pl h3{margin:0 0 2px;font-size:16px}
+.pl .ty{font-size:12px;color:var(--mut);margin-bottom:6px}
+.pl p{margin:0 0 6px;font-size:15px}
+.pl .tip{background:#fff7e8;border-left:3px solid #e9a63a;padding:6px 10px;font-size:14px;border-radius:0 8px 8px 0;margin:6px 0 8px}
+h2{font-size:17px;margin:18px 2px 8px}
+ul.tips{margin:0;padding-left:20px}ul.tips li{margin:5px 0}
+textarea,.field{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:15px;background:#fff}
+textarea{min-height:140px;resize:vertical}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+.note{font-size:13px;color:var(--mut);margin:8px 2px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Viagem ES · 13 a 24/11/2026</h1>
+  <p id="sub">Guarapari · Vila Velha · Vitória</p>
+</header>
+<main id="app"></main>
+<nav>
+  <button data-tab="roteiro" class="on"><b>🗓️</b>Roteiro</button>
+  <button data-tab="lugares"><b>📍</b>Lugares</button>
+  <button data-tab="dicas"><b>💡</b>Dicas</button>
+  <button data-tab="notas"><b>📝</b>Notas</button>
+</nav>
+
+<script>
+/* ---------- DADOS ---------- */
+var CITY={gua:{n:'Guarapari',c:'gua'},vv:{n:'Vila Velha',c:'vv'},vit:{n:'Vitória',c:'vit'}};
+
+var PLACES=[
+ // Vitória
+ {id:'vix',city:'vit',name:'Localiza — Av. Fernando Ferrari (Goiabeiras)',type:'Retirada do carro',q:'Localiza Av Fernando Ferrari 3740 Goiabeiras Vitória ES',desc:'Agência da Localiza mais próxima do aeroporto de Vitória, a menos de 1 km dele. Não há transfer: vá a pé, de Uber ou 99.',tip:'Leve CNH, cartão de crédito em nome do condutor e o voucher da reserva. Tire fotos do carro (todos os lados e o painel) antes de sair.'},
+ {id:'shvit',city:'vit',name:'Shopping Vitória',type:'Compras e almoço',q:'Shopping Vitória ES',desc:'Fica no caminho entre o aeroporto e a saída para Guarapari, perto da região da Praia do Canto e da Enseada do Suá.',tip:'Boa parada para comprar protetor solar, repelente, água e o que faltar antes de seguir viagem.'},
+ {id:'terceira',city:'vit',name:'Terceira Ponte',type:'Cartão-postal',q:'Terceira Ponte Vitória Vila Velha',desc:'Liga Vitória a Vila Velha e aparece em quase todo cartão-postal da região. Você vai atravessá-la mais de uma vez.',tip:'Para fotos, a vista mais clássica é do Morro do Moreno, em Vila Velha.'},
+ {id:'cidadealta',city:'vit',name:'Centro histórico / Cidade Alta',type:'História e cultura',q:'Palácio Anchieta Vitória ES',desc:'Palácio Anchieta, Catedral Metropolitana e Teatro Carlos Gomes ficam próximos, e dá para fazer tudo a pé. Vitória foi fundada em 1551.',tip:'Vá de manhã, com calçado confortável. Confirme na hora o horário de visitação do Palácio Anchieta.'},
+ {id:'santoantonio',city:'vit',name:'Basílica Santuário de Santo Antônio',type:'Mirante e igreja',q:'Basílica Santuário de Santo Antônio Vitória ES',desc:'Construção tombada no centro histórico, com vista para a Baía de Vitória.',tip:'Combine com a visita à Cidade Alta.'},
+ {id:'camburi',city:'vit',name:'Praia de Camburi',type:'Praia urbana',q:'Praia de Camburi Vitória ES',desc:'A praia mais famosa de Vitória, com orla longa, quiosques e ciclovia. Fica ao lado do aeroporto.',tip:'Ótima para caminhada ao fim da tarde.'},
+ {id:'enseada',city:'vit',name:'Praça dos Namorados / Enseada do Suá',type:'Orla e lazer',q:'Praça dos Namorados Enseada do Suá Vitória ES',desc:'Calçadão, ciclovia e quiosques, muito frequentada por famílias e esportistas.',tip:'Bom para o fim da tarde, com vista para a baía.'},
+ {id:'caieiras',city:'vit',name:'Ilha das Caieiras',type:'Gastronomia',q:'Ilha das Caieiras Vitória ES',desc:'Bairro de pescadores famoso pela moqueca capixaba, ostras e outros frutos do mar.',tip:'Prefira horários fora do pico de almoço de fim de semana. Pergunte o preço do prato antes de pedir.'},
+ {id:'pedracebola',city:'vit',name:'Parque Pedra da Cebola',type:'Trilha e natureza',q:'Parque Pedra da Cebola Vitória ES',desc:'Área preservada com trilhas ecológicas e mirantes, a poucos minutos da Praia do Canto.',tip:'Vá cedo, por causa do calor. Leve água e tênis.'},
+ {id:'fontegrande',city:'vit',name:'Parque da Fonte Grande',type:'Natureza e vista',q:'Parque da Fonte Grande Vitória ES',desc:'Um dos pontos mais altos de Vitória, com trilhas e vista panorâmica da cidade.',tip:'Confirme o acesso e o horário antes de ir. Em dia de chuva, deixe para outro dia.'},
+ {id:'tamar',city:'vit',name:'Projeto Tamar Vitória',type:'Passeio em família',q:'Projeto Tamar Vitória ES',desc:'Centro de visitantes do projeto de conservação das tartarugas marinhas.',tip:'Confira horário e valor no site oficial antes de ir.'},
+ // Vila Velha
+ {id:'convento',city:'vv',name:'Convento da Penha',type:'Ponto mais famoso',q:'Convento da Penha Vila Velha ES',desc:'Santuário mariano em um morro, apontado como o mais antigo do país e um dos grandes cartões-postais do ES. Tem vista das duas cidades.',tip:'Dá para subir de carro. Vá cedo, com roupa adequada para igreja, e confirme o horário de funcionamento.'},
+ {id:'casamemoria',city:'vv',name:'Casa da Memória',type:'Centro histórico',q:'Casa da Memória Vila Velha ES',desc:'Primeiro ponto do roteiro pelo centro histórico, perto do busto do Almirante Tamandaré e da Igreja do Rosário.',tip:'Dá para fazer o centro histórico a pé em poucas horas.'},
+ {id:'rosario',city:'vv',name:'Igreja Nossa Senhora do Rosário',type:'Centro histórico',q:'Igreja Nossa Senhora do Rosário Vila Velha ES',desc:'Fica a cerca de duas quadras do acesso ao Convento da Penha.',tip:'Aproveite para ir caminhando até o convento.'},
+ {id:'prainha',city:'vv',name:'Parque Estadual da Prainha',type:'Parque e praia',q:'Parque da Prainha Vila Velha ES',desc:'Ponto de partida sugerido para conhecer o centro histórico de Vila Velha.',tip:'Estacione perto da Casa da Memória e faça o resto a pé.'},
+ {id:'moreno',city:'vv',name:'Morro do Moreno',type:'Trilha e mirante',q:'Morro do Moreno Vila Velha ES',desc:'Complexo de trilhas e mirantes com vista da Terceira Ponte e das duas cidades. Dá para subir de carro ou a pé.',tip:'Para a trilha, vá acompanhado e de manhã cedo. Se for de carro, o pôr do sol é bonito.'},
+ {id:'costa',city:'vv',name:'Praia da Costa',type:'Praia badalada',q:'Praia da Costa Vila Velha ES',desc:'Uma das praias mais movimentadas de Vila Velha, com orla estruturada, quiosques e restaurantes.',tip:'Boa base para comer bem e caminhar à noite.'},
+ {id:'itapua',city:'vv',name:'Praia de Itapuã',type:'Praia',q:'Praia de Itapuã Vila Velha ES',desc:'Uma das principais praias do litoral de Vila Velha, que tem 32 km de costa.',tip:'Boa opção para um dia de praia mais tranquilo.'},
+ {id:'itaparica',city:'vv',name:'Praia de Itaparica',type:'Praia',q:'Praia de Itaparica Vila Velha ES',desc:'Orla com vários hotéis e restaurantes, em sequência à Praia da Costa.',tip:'Vale a caminhada pela orla no fim da tarde.'},
+ {id:'sereia',city:'vv',name:'Praia da Sereia',type:'Praia',q:'Praia da Sereia Vila Velha ES',desc:'Citada por uma blogueira de viagens como a mais bonita que ela conheceu no ES.',tip:'Confirme as condições do mar antes de entrar.'},
+ {id:'garoto',city:'vv',name:'Fábrica de chocolates Garoto',type:'Passeio diferente',q:'Garoto fábrica loja Glória Vila Velha ES',desc:'Fábrica e museu da marca, no bairro da Glória, com loja no local.',tip:'Visitas costumam exigir agendamento e acontecem em dias úteis. Confirme tudo antes de ir.'},
+ // Guarapari
+ {id:'areiapreta',city:'gua',name:'Praia da Areia Preta',type:'Praia central',q:'Praia da Areia Preta Guarapari ES',desc:'Uma das praias mais centrais e curiosas da cidade.',tip:'Boa para a primeira tarde, perto de tudo.'},
+ {id:'morro',city:'gua',name:'Praia do Morro',type:'Praia principal',q:'Praia do Morro Guarapari ES',desc:'Uma das principais atrações de Guarapari, com orla movimentada e boa para ir em família.',tip:'Em horários de pico há filas e bares lotados à noite, então chegue cedo.'},
+ {id:'castanheiras',city:'gua',name:'Praia das Castanheiras',type:'Piscinas naturais',q:'Praia das Castanheiras Guarapari ES',desc:'Uma das praias mais urbanizadas da cidade, conhecida pelas piscinas naturais.',tip:'Consulte a tábua de marés. Com a maré baixa as piscinas ficam melhores.'},
+ {id:'meio',city:'gua',name:'Praia do Meio',type:'Praia calma',q:'Praia do Meio Guarapari ES',desc:'Fica entre Castanheiras e Areia Preta, com águas calmas, boa para família.',tip:'Boa para quem quer mar tranquilo.'},
+ {id:'canal',city:'gua',name:'Orla do Canal de Guarapari',type:'Passeio a pé',q:'Orla do Canal Guarapari ES',desc:'Orla revitalizada e inaugurada em 2018, hoje um dos principais pontos turísticos da cidade.',tip:'Ótima para caminhar à noite e jantar.'},
+ {id:'vinha',city:'gua',name:'Parque Estadual Paulo César Vinha',type:'Natureza e trilhas',q:'Parque Estadual Paulo César Vinha Setiba Guarapari ES',desc:'Reserva natural com trilhas, restinga e lagoas, em Setiba, ao norte do centro.',tip:'Costuma ter entrada gratuita ou baixa, mas confirme valores e horários. Leve repelente, água e protetor.'},
+ {id:'setiba',city:'gua',name:'Praia de Setiba',type:'Praia tranquila',q:'Praia de Setiba Guarapari ES',desc:'Conhecida pela pesca e por ser mais calma, com paisagem bonita.',tip:'Combina bem com o Parque Paulo César Vinha, que fica na mesma região.'},
+ {id:'tresprais',city:'gua',name:'Três Praias',type:'Praias escondidas',q:'Três Praias Guarapari ES',desc:'Conjunto de praias separadas por rochedos, com águas cristalinas.',tip:'Mais rústico e sossegado. Leve o que precisar, porque a estrutura é menor.'},
+ {id:'ermitao',city:'gua',name:'Praia do Ermitão',type:'Praia reservada',q:'Praia do Ermitão Guarapari ES',desc:'Uma das praias mais escondidas e bonitas da cidade, citada em listas de praias para conhecer num dia só.',tip:'Chegue cedo e confirme as condições de acesso.'},
+ {id:'padres',city:'gua',name:'Praia dos Padres',type:'Praia',q:'Praia dos Padres Guarapari ES',desc:'Bem avaliada pelos visitantes, no litoral de Guarapari.',tip:'Boa opção para combinar com Ermitão no mesmo dia.'},
+ {id:'meaipe',city:'gua',name:'Meaípe',type:'Praia e noite',q:'Praia de Meaípe Guarapari ES',desc:'Ao sul de Guarapari, tem fama de praia badalada, com restaurantes e vida noturna, e também de lugar tranquilo durante o dia.',tip:'Bom para jantar e curtir o fim de tarde. Reserve mesa se for fim de semana.'},
+ {id:'aquamania',city:'gua',name:'Acquamania Parque',type:'Parque aquático',q:'Acquamania Guarapari ES',desc:'Parque aquático na região sudeste de Guarapari.',tip:'Opcional. Os valores variam, então confirme no site oficial.'},
+ {id:'barbudo',city:'gua',name:'Cachoeira do Barbudo',type:'Cachoeira',q:'Cachoeira do Barbudo Buenos Aires Guarapari ES',desc:'Ponto turístico da parte de montanha de Guarapari, na comunidade de Buenos Aires.',tip:'Opcional, para quem quer um dia diferente das praias. Confirme o acesso antes de ir.'}
+];
+var P={};PLACES.forEach(function(p){P[p.id]=p});
+
+var DAYS=[
+ {d:'2026-11-13',title:'Chegada, carro e Guarapari',city:'vit',items:[
+  {t:'10:00',x:'Chegada ao aeroporto de Vitória (VIX)'},
+  {t:'~11:00',x:'Retirar o carro na Localiza',p:'vix'},
+  {t:'~12:00',x:'Compras e almoço no shopping',p:'shvit'},
+  {t:'~14:30',x:'Seguir para Guarapari (cerca de 51 km, pela Rodovia do Sol ou BR-101)'},
+  {t:'Tarde',x:'Check-in e primeiro passeio pela orla',p:'canal'}]},
+ {d:'2026-11-14',title:'Praias do centro de Guarapari',city:'gua',items:[
+  {t:'Manhã',x:'Praia do Morro',p:'morro'},
+  {t:'Meio-dia',x:'Almoço perto da praia'},
+  {t:'Tarde',x:'Piscinas naturais da Praia das Castanheiras',p:'castanheiras'},
+  {t:'Fim do dia',x:'Praia da Areia Preta',p:'areiapreta'}]},
+ {d:'2026-11-15',title:'Setiba e Paulo César Vinha',city:'gua',items:[
+  {t:'Manhã',x:'Parque Estadual Paulo César Vinha (trilhas e lagoas)',p:'vinha'},
+  {t:'Tarde',x:'Praia de Setiba',p:'setiba'},
+  {t:'Opcional',x:'Três Praias',p:'tresprais'}]},
+ {d:'2026-11-16',title:'Praias escondidas e Meaípe',city:'gua',items:[
+  {t:'Manhã',x:'Praia do Ermitão',p:'ermitao'},
+  {t:'Tarde',x:'Praia dos Padres',p:'padres'},
+  {t:'Noite',x:'Jantar em Meaípe',p:'meaipe'},
+  {t:'Opcional',x:'Cachoeira do Barbudo ou Acquamania no lugar das praias',p:'barbudo'}]},
+ {d:'2026-11-17',title:'Mudança para Vila Velha',city:'vv',items:[
+  {t:'Manhã',x:'Check-out em Guarapari e viagem para Vila Velha'},
+  {t:'Tarde',x:'Check-in na primeira hospedagem de Vila Velha e descanso'},
+  {t:'Fim do dia',x:'Orla da Praia da Costa',p:'costa'}]},
+ {d:'2026-11-18',title:'Centro histórico e Convento da Penha',city:'vv',items:[
+  {t:'Manhã',x:'Casa da Memória',p:'casamemoria'},
+  {t:'',x:'Igreja do Rosário',p:'rosario'},
+  {t:'',x:'Convento da Penha',p:'convento'},
+  {t:'Tarde',x:'Parque da Prainha',p:'prainha'}]},
+ {d:'2026-11-19',title:'Morro do Moreno e praias',city:'vv',items:[
+  {t:'Manhã',x:'Morro do Moreno (trilha ou de carro)',p:'moreno'},
+  {t:'Tarde',x:'Praia de Itapuã',p:'itapua'},
+  {t:'Opcional',x:'Praia da Sereia',p:'sereia'}]},
+ {d:'2026-11-20',title:'Vitória: centro histórico',city:'vit',items:[
+  {t:'Manhã',x:'Palácio Anchieta, Catedral e Teatro Carlos Gomes',p:'cidadealta'},
+  {t:'',x:'Basílica de Santo Antônio',p:'santoantonio'},
+  {t:'Tarde',x:'Terceira Ponte',p:'terceira'}]},
+ {d:'2026-11-21',title:'Vitória: praia e moqueca',city:'vit',items:[
+  {t:'Manhã',x:'Parque Pedra da Cebola',p:'pedracebola'},
+  {t:'Almoço',x:'Moqueca na Ilha das Caieiras',p:'caieiras'},
+  {t:'Tarde',x:'Praia de Camburi',p:'camburi'},
+  {t:'Fim do dia',x:'Praça dos Namorados / Enseada do Suá',p:'enseada'}]},
+ {d:'2026-11-22',title:'Dia de praia em Vila Velha',city:'vv',items:[
+  {t:'Manhã',x:'Praia da Costa',p:'costa'},
+  {t:'Tarde',x:'Praia de Itaparica',p:'itaparica'},
+  {t:'Noite',x:'Jantar na orla'}]},
+ {d:'2026-11-23',title:'Chocolate e dia livre',city:'vv',items:[
+  {t:'Manhã',x:'Fábrica de chocolates Garoto (confirmar agendamento)',p:'garoto'},
+  {t:'Tarde',x:'Parque da Fonte Grande ou Projeto Tamar',p:'fontegrande'},
+  {t:'',x:'Lembrancinhas e compras de última hora'}]},
+ {d:'2026-11-24',title:'Último dia',city:'vv',items:[
+  {t:'',x:'Ajustar conforme o horário do voo de volta'},
+  {t:'',x:'Abastecer e devolver o carro na Localiza',p:'vix'}]}
+];
+
+var TIPS=[
+ ['Carro alugado',[
+  'Na retirada, tire fotos de todos os lados do carro e do painel (combustível e km).',
+  'Confira se a Localiza onde você vai retirar abre no seu horário, porque a agência fica em Goiabeiras e não tem transfer do aeroporto.',
+  'Devolva com o tanque no nível combinado no contrato, para evitar taxa de abastecimento.',
+  'Pergunte se o contrato inclui pedágio automático (sem parar) ou se você paga à parte.']],
+ ['Praias',[
+  'Verifique a condição do mar e a bandeira do dia antes de entrar na água.',
+  'Nas Castanheiras, vá com a maré baixa para aproveitar as piscinas naturais.',
+  'Em Guarapari, quiosques e bares lotam à noite, então chegue cedo ou reserve.',
+  'Leve protetor solar, chapéu e água. Novembro já é calor forte no litoral capixaba.']],
+ ['Comer bem',[
+  'Experimente a moqueca capixaba (feita na panela de barro, sem dendê) e a torta capixaba.',
+  'A Ilha das Caieiras, em Vitória, é referência em moqueca e frutos do mar.',
+  'Pergunte o preço antes de pedir pratos para dividir.',
+  'Em fim de semana, reserve mesa para jantar em Meaípe e na orla de Vila Velha.']],
+ ['Deslocamentos',[
+  'Vitória e Vila Velha ficam a cerca de 5 km uma da outra, ligadas pela Terceira Ponte.',
+  'Guarapari fica a cerca de 51 km de Vitória, pela Rodovia do Sol ou BR-101.',
+  'Evite atravessar as pontes e a BR-101 nos horários de pico (início da manhã e fim da tarde).',
+  'Deixe sempre o celular com bateria e baixe o mapa offline do Google Maps das três cidades.']],
+ ['Antes de sair',[
+  'Confirme horários e valores de parques, igrejas e atrações no site oficial, porque podem mudar.',
+  'Salve o endereço e o telefone das hospedagens em Guarapari e Vila Velha na aba Notas.',
+  'Deixe cópia dos documentos do carro e da reserva no celular.',
+  'Tenha um plano B para dia de chuva: Shopping Vitória, centro histórico e museus.']]
+];
+
+/* ---------- ESTADO ---------- */
+var S={done:{},extra:{},notes:'',hosp:{gua:'',vv:''},hidden:{}};
+var store=null;
+try{store=window.localStorage}catch(e){store=null}
+function load(){try{var j=store&&store.getItem('viagem-es-v1');if(j){var o=JSON.parse(j);for(var k in o)S[k]=o[k]}}catch(e){}}
+function save(){try{store&&store.setItem('viagem-es-v1',JSON.stringify(S))}catch(e){}}
+load();
+
+/* ---------- UTIL ---------- */
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function mapUrl(q){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q)}
+var WD=['dom','seg','ter','qua','qui','sex','sáb'];
+function fmt(d){var a=d.split('-');var dt=new Date(+a[0],+a[1]-1,+a[2]);return WD[dt.getDay()]+', '+a[2]+'/'+a[1]}
+function todayStr(){var n=new Date();return n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-'+('0'+n.getDate()).slice(-2)}
+function badge(c){return '<span class="badge '+c+'">'+CITY[c].n+'</span>'}
+
+/* ---------- TELAS ---------- */
+var tab='roteiro',filter='all',openDay=null;
+var app=document.getElementById('app');
+
+function viewRoteiro(){
+  var td=todayStr(),h='';
+  var first=DAYS[0].d,last=DAYS[DAYS.length-1].d;
+  if(openDay===null){openDay=(td>=first&&td<=last)?td:first}
+  h+='<div class="card"><b>Hospedagem</b>'
+   +'<label>Guarapari (13 a 17/11)</label><input class="field" id="hg" placeholder="Nome, endereço e telefone" value="'+esc(S.hosp.gua||'')+'">'
+   +'<label>Vila Velha — hospedagem 1</label><input class="field" id="hv" placeholder="Nome, endereço, telefone e datas" value="'+esc(S.hosp.vv||'')+'">'
+   +'<label>Vila Velha — hospedagem 2</label><input class="field" id="hv2" placeholder="Nome, endereço, telefone e datas" value="'+esc(S.hosp.vv2||'')+'"></div>';
+  DAYS.forEach(function(day,i){
+    var isOpen=openDay===day.d;
+    var ex=S.extra[day.d]||[];
+    var total=ex.length,dn=0,nh=0;
+    day.items.forEach(function(_,j){var k0=day.d+'-'+j;if(S.hidden['i:'+k0]){nh++;return}total++;if(S.done[k0])dn++});
+    ex.forEach(function(_,j){if(S.done[day.d+'-x'+j])dn++});
+    h+='<div class="card'+(day.d===td?' today':'')+'" data-d="'+day.d+'">'
+     +'<div class="day-h" data-toggle="'+day.d+'"><div><h3>Dia '+(i+1)+' · '+esc(day.title)+'</h3><small>'+fmt(day.d)+(day.d===td?' · hoje':'')+' · '+dn+'/'+total+' feitos</small></div>'+badge(day.city)+'</div>';
+    if(isOpen){
+      h+='<ul class="items">';
+      day.items.forEach(function(it,j){
+        var k=day.d+'-'+j,pl=it.p?P[it.p]:null;
+        if(S.hidden['i:'+k])return;
+        h+='<li><input type="checkbox" data-k="'+k+'"'+(S.done[k]?' checked':'')+'><span class="t">'+esc(it.t||'')+'</span><div class="x'+(S.done[k]?' done':'')+'">'+esc(it.x)
+          +(pl?'<br><a class="map" target="_blank" rel="noopener" href="'+mapUrl(pl.q)+'">📍 Abrir no mapa</a> · <a class="map" href="#" data-go="'+pl.id+'">Ver dicas</a>':'')+'</div><button class="del" data-hide="i:'+k+'" aria-label="Remover do roteiro">×</button></li>';
+      });
+      ex.forEach(function(t,j){
+        var k=day.d+'-x'+j;
+        h+='<li><input type="checkbox" data-k="'+k+'"'+(S.done[k]?' checked':'')+'><span class="t">extra</span><div class="x'+(S.done[k]?' done':'')+'">'+esc(t)+'</div><button class="del" data-del="'+day.d+'|'+j+'" aria-label="Remover">×</button></li>';
+      });
+      h+='</ul>'+(nh?'<p class="note"><a href="#" data-restore="'+day.d+'">Restaurar '+nh+' item(ns) removido(s) deste dia</a></p>':'')+'<div class="add"><input placeholder="Adicionar item neste dia" data-add="'+day.d+'"><button data-addbtn="'+day.d+'">+</button></div>';
+    }
+    h+='</div>';
+  });
+  h+='<p class="note">Os horários são sugestões. Toque no título do dia para abrir ou fechar. Use o × para tirar do roteiro o que você não quer fazer.</p>';
+  app.innerHTML=h;
+}
+
+function viewLugares(){
+  var h='<div class="chips">';
+  [['all','Todos'],['gua','Guarapari'],['vv','Vila Velha'],['vit','Vitória']].forEach(function(c){
+    h+='<button data-f="'+c[0]+'"'+(filter===c[0]?' class="on"':'')+'>'+c[1]+'</button>'});
+  h+='</div>';
+  var inF=PLACES.filter(function(p){return filter==='all'||p.city===filter});
+  inF.filter(function(p){return !S.hidden['p:'+p.id]}).forEach(function(p){
+    h+='<div class="card pl" id="pl-'+p.id+'"><h3>'+esc(p.name)+'</h3><div class="ty">'+esc(p.type)+' · '+CITY[p.city].n+'</div>'
+     +'<p>'+esc(p.desc)+'</p><div class="tip">💡 '+esc(p.tip)+'</div>'
+     +'<a class="btn" target="_blank" rel="noopener" href="'+mapUrl(p.q)+'">📍 Abrir no Google Maps</a> '
+     +'<button class="btn" style="background:#8a8f90" data-hide="p:'+p.id+'">Não quero ir</button></div>';
+  });
+  var hid=inF.filter(function(p){return S.hidden['p:'+p.id]});
+  if(hid.length){
+    h+='<h2>Lugares que você removeu</h2>';
+    hid.forEach(function(p){
+      h+='<div class="card"><b>'+esc(p.name)+'</b> <button class="btn" style="margin-left:6px" data-unhide="p:'+p.id+'">Restaurar</button></div>';
+    });
+  }
+  app.innerHTML=h;
+}
+
+function viewDicas(){
+  var h='';
+  var nh=0;
+  TIPS.forEach(function(g,gi){
+    var lis='';
+    g[1].forEach(function(t,ti){
+      var k='t:'+gi+'-'+ti;
+      if(S.hidden[k]){nh++;return}
+      lis+='<li>'+esc(t)+' <button class="del" data-hide="'+k+'" aria-label="Remover dica">×</button></li>';
+    });
+    if(lis)h+='<h2>'+esc(g[0])+'</h2><div class="card"><ul class="tips">'+lis+'</ul></div>';
+  });
+  if(nh)h+='<p class="note"><a href="#" data-restoretips="1">Restaurar '+nh+' dica(s) removida(s)</a></p>';
+  h+='<p class="note">Horários, valores e regras de atrações mudam. Confirme no site oficial antes de ir.</p>';
+  app.innerHTML=h;
+}
+
+function viewNotas(){
+  app.innerHTML='<div class="card"><b>Minhas notas</b><label>Reservas, telefones, lugares que quer incluir, gastos...</label>'
+   +'<textarea id="nt" placeholder="Escreva aqui">'+esc(S.notes||'')+'</textarea></div>'
+   +'<p class="note">As notas e os itens marcados ficam salvos neste aparelho e navegador. Se você trocar de aparelho ou limpar os dados do navegador, eles não vêm junto.</p>';
+}
+
+function render(){
+  document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.tab===tab)});
+  ({roteiro:viewRoteiro,lugares:viewLugares,dicas:viewDicas,notas:viewNotas})[tab]();
+}
+
+/* ---------- EVENTOS ---------- */
+document.querySelector('nav').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;tab=b.dataset.tab;render();window.scrollTo(0,0)});
+
+app.addEventListener('click',function(e){
+  var t=e.target;
+  var tg=t.closest('[data-toggle]');
+  if(tg&&!t.closest('a')){var d=tg.dataset.toggle;openDay=(openDay===d)?'':d;render();return}
+  var go=t.closest('[data-go]');
+  if(go){e.preventDefault();filter='all';tab='lugares';render();var el=document.getElementById('pl-'+go.dataset.go);if(el)el.scrollIntoView();return}
+  var f=t.closest('[data-f]');if(f){filter=f.dataset.f;render();return}
+  var hd=t.closest('[data-hide]');
+  if(hd){S.hidden[hd.dataset.hide]=1;save();render();return}
+  var uh=t.closest('[data-unhide]');
+  if(uh){delete S.hidden[uh.dataset.unhide];save();render();return}
+  var rs=t.closest('[data-restore]');
+  if(rs){e.preventDefault();for(var q in S.hidden){if(q.indexOf('i:'+rs.dataset.restore+'-')===0)delete S.hidden[q]}save();render();return}
+  var rt=t.closest('[data-restoretips]');
+  if(rt){e.preventDefault();for(var q2 in S.hidden){if(q2.indexOf('t:')===0)delete S.hidden[q2]}save();render();return}
+  var ab=t.closest('[data-addbtn]');
+  if(ab){addItem(ab.dataset.addbtn);return}
+  var del=t.closest('[data-del]');
+  if(del){var p=del.dataset.del.split('|');S.extra[p[0]].splice(+p[1],1);
+    // limpa marcações dos extras do dia
+    for(var k in S.done){if(k.indexOf(p[0]+'-x')===0)delete S.done[k]}
+    save();render();return}
+});
+app.addEventListener('change',function(e){
+  var c=e.target;
+  if(c.dataset&&c.dataset.k){if(c.checked)S.done[c.dataset.k]=1;else delete S.done[c.dataset.k];save();render()}
+});
+app.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.add){e.preventDefault();addItem(e.target.dataset.add)}
+});
+app.addEventListener('input',function(e){
+  var el=e.target;
+  if(el.id==='nt'){S.notes=el.value;save()}
+  if(el.id==='hg'){S.hosp.gua=el.value;save()}
+  if(el.id==='hv'){S.hosp.vv=el.value;save()}
+  if(el.id==='hv2'){S.hosp.vv2=el.value;save()}
+});
+function addItem(d){
+  var inp=app.querySelector('[data-add="'+d+'"]');var v=inp&&inp.value.trim();if(!v)return;
+  (S.extra[d]=S.extra[d]||[]).push(v);save();render();
+}
+
+render();
+</script>
+</body>
+</html>
